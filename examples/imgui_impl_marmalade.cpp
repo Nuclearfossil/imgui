@@ -1,18 +1,18 @@
-// ImGui Renderer + Platform Binding for: Marmalade + IwGx
+// dear imgui: Renderer + Platform Binding for Marmalade + IwGx
+// Marmalade code: Copyright (C) 2015 by Giovanni Zito (this file is part of Dear ImGui)
 
 // Implemented features:
 //  [X] Renderer: User texture binding. Use 'CIwTexture*' as ImTextureID. Read the FAQ about ImTextureID in imgui.cpp.
+// Missing features:
+//  [ ] Renderer: Clipping rectangles are not honored.
 
 // You can copy and use unmodified imgui_impl_* files in your project. See main.cpp for an example of using this.
-// If you use this binding you'll need to call 4 functions: ImGui_ImplXXXX_Init(), ImGui_ImplXXXX_NewFrame(), ImGui::Render() and ImGui_ImplXXXX_Shutdown().
-// If you are new to ImGui, see examples/README.txt and documentation at the top of imgui.cpp.
+// If you are new to dear imgui, read examples/README.txt and read the documentation at the top of imgui.cpp.
 // https://github.com/ocornut/imgui
-
-// Copyright (C) 2015 by Giovanni Zito
-// This file is part of ImGui
 
 // CHANGELOG
 // (minor and older changes stripped away, please see git history for details)
+//  2018-11-30: Misc: Setting up io.BackendPlatformName/io.BackendRendererName so they can be displayed in the About Window.
 //  2018-02-16: Misc: Obsoleted the io.RenderDrawListsFn callback and exposed ImGui_Marmalade_RenderDrawData() in the .h file so you can call it yourself.
 //  2018-02-06: Misc: Removed call to ImGui::Shutdown() which is not available from 1.60 WIP, user needs to call CreateContext/DestroyContext themselves.
 //  2018-02-06: Inputs: Added mapping for ImGuiKey_Space.
@@ -40,12 +40,8 @@ static ImVec2       g_RenderScale = ImVec2(1.0f,1.0f);
 // (this used to be set in io.RenderDrawListsFn and called by ImGui::Render(), but you can now call this directly from your main loop)
 void ImGui_Marmalade_RenderDrawData(ImDrawData* draw_data)
 {
-    // Handle cases of screen coordinates != from framebuffer coordinates (e.g. retina displays)
-    ImGuiIO& io = ImGui::GetIO();
-    draw_data->ScaleClipRects(io.DisplayFramebufferScale);
-
     // Render command lists
-    for(int n = 0; n < draw_data->CmdListsCount; n++)
+    for (int n = 0; n < draw_data->CmdListsCount; n++)
     {
         const ImDrawList* cmd_list = draw_data->CmdLists[n];
         const ImDrawIdx* idx_buffer = cmd_list->IdxBuffer.Data;
@@ -54,9 +50,9 @@ void ImGui_Marmalade_RenderDrawData(ImDrawData* draw_data)
         CIwFVec2* pUVStream = IW_GX_ALLOC(CIwFVec2, nVert);
         CIwColour* pColStream = IW_GX_ALLOC(CIwColour, nVert);
 
-        for( int i=0; i < nVert; i++ )
+        for (int i = 0; i < nVert; i++)
         {
-            // TODO: optimize multiplication on gpu using vertex shader/projection matrix.
+            // FIXME-OPT: optimize multiplication on GPU using vertex shader/projection matrix.
             pVertStream[i].x = cmd_list->VtxBuffer[i].pos.x * g_RenderScale.x;
             pVertStream[i].y = cmd_list->VtxBuffer[i].pos.y * g_RenderScale.y;
             pUVStream[i].x = cmd_list->VtxBuffer[i].uv.x;
@@ -78,6 +74,7 @@ void ImGui_Marmalade_RenderDrawData(ImDrawData* draw_data)
             }
             else
             {
+                // FIXME: Not honoring ClipRect fields.
                 CIwMaterial* pCurrentMaterial = IW_GX_ALLOC_MATERIAL();
                 pCurrentMaterial->SetShadeMode(CIwMaterial::SHADE_FLAT);
                 pCurrentMaterial->SetCullMode(CIwMaterial::CULL_NONE);
@@ -193,7 +190,7 @@ bool ImGui_Marmalade_CreateDeviceObjects()
     g_FontTexture->Upload();
 
     // Store our identifier
-    io.Fonts->TexID = (void *)g_FontTexture;
+    io.Fonts->TexID = (ImTextureID)g_FontTexture;
 
     return true;
 }
@@ -217,6 +214,8 @@ void    ImGui_Marmalade_InvalidateDeviceObjects()
 bool    ImGui_Marmalade_Init(bool install_callbacks)
 {
     ImGuiIO& io = ImGui::GetIO();
+    io.BackendPlatformName = io.BackendRendererName = "imgui_impl_marmalade";
+
     io.KeyMap[ImGuiKey_Tab] = s3eKeyTab;                     // Keyboard mapping. ImGui will use those indices to peek into the io.KeysDown[] array.
     io.KeyMap[ImGuiKey_LeftArrow] = s3eKeyLeft;
     io.KeyMap[ImGuiKey_RightArrow] = s3eKeyRight;

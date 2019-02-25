@@ -1,16 +1,18 @@
-// ImGui Renderer for: DirectX10
+// dear imgui: Renderer for DirectX10
 // This needs to be used along with a Platform Binding (e.g. Win32)
 
 // Implemented features:
 //  [X] Renderer: User texture binding. Use 'ID3D10ShaderResourceView*' as ImTextureID. Read the FAQ about ImTextureID in imgui.cpp.
 
 // You can copy and use unmodified imgui_impl_* files in your project. See main.cpp for an example of using this.
-// If you use this binding you'll need to call 4 functions: ImGui_ImplXXXX_Init(), ImGui_ImplXXXX_NewFrame(), ImGui::Render() and ImGui_ImplXXXX_Shutdown().
-// If you are new to ImGui, see examples/README.txt and documentation at the top of imgui.cpp.
+// If you are new to dear imgui, read examples/README.txt and read the documentation at the top of imgui.cpp.
 // https://github.com/ocornut/imgui
 
-// CHANGELOG 
+// CHANGELOG
 // (minor and older changes stripped away, please see git history for details)
+//  2018-12-03: Misc: Added #pragma comment statement to automatically link with d3dcompiler.lib when using D3DCompile().
+//  2018-11-30: Misc: Setting up io.BackendRendererName so it can be displayed in the About Window.
+//  2018-07-13: DirectX10: Fixed unreleased resources in Init and Shutdown functions.
 //  2018-06-08: Misc: Extracted imgui_impl_dx10.cpp/.h away from the old combined DX10+Win32 example.
 //  2018-06-08: DirectX10: Use draw_data->DisplayPos and draw_data->DisplaySize to setup projection matrix and clipping rectangle.
 //  2018-04-09: Misc: Fixed erroneous call to io.Fonts->ClearInputData() + ClearTexData() that was left in DX10 example but removed in 1.47 (Nov 2015) on other back-ends.
@@ -26,17 +28,20 @@
 #include <d3d10_1.h>
 #include <d3d10.h>
 #include <d3dcompiler.h>
+#ifdef _MSC_VER
+#pragma comment(lib, "d3dcompiler") // Automatically link with d3dcompiler.lib as we are using D3DCompile() below.
+#endif
 
 // DirectX data
 static ID3D10Device*            g_pd3dDevice = NULL;
 static IDXGIFactory*            g_pFactory = NULL;
 static ID3D10Buffer*            g_pVB = NULL;
 static ID3D10Buffer*            g_pIB = NULL;
-static ID3D10Blob *             g_pVertexShaderBlob = NULL;
+static ID3D10Blob*              g_pVertexShaderBlob = NULL;
 static ID3D10VertexShader*      g_pVertexShader = NULL;
 static ID3D10InputLayout*       g_pInputLayout = NULL;
 static ID3D10Buffer*            g_pVertexConstantBuffer = NULL;
-static ID3D10Blob *             g_pPixelShaderBlob = NULL;
+static ID3D10Blob*              g_pPixelShaderBlob = NULL;
 static ID3D10PixelShader*       g_pPixelShader = NULL;
 static ID3D10SamplerState*      g_pFontSampler = NULL;
 static ID3D10ShaderResourceView*g_pFontTextureView = NULL;
@@ -194,7 +199,7 @@ void ImGui_ImplDX10_RenderDrawData(ImDrawData* draw_data)
     // Render command lists
     int vtx_offset = 0;
     int idx_offset = 0;
-    ImVec2 pos = draw_data->DisplayPos;
+    ImVec2 clip_off = draw_data->DisplayPos;
     for (int n = 0; n < draw_data->CmdListsCount; n++)
     {
         const ImDrawList* cmd_list = draw_data->CmdLists[n];
@@ -209,11 +214,12 @@ void ImGui_ImplDX10_RenderDrawData(ImDrawData* draw_data)
             else
             {
                 // Apply scissor/clipping rectangle
-                const D3D10_RECT r = { (LONG)(pcmd->ClipRect.x - pos.x), (LONG)(pcmd->ClipRect.y - pos.y), (LONG)(pcmd->ClipRect.z - pos.x), (LONG)(pcmd->ClipRect.w - pos.y)};
+                const D3D10_RECT r = { (LONG)(pcmd->ClipRect.x - clip_off.x), (LONG)(pcmd->ClipRect.y - clip_off.y), (LONG)(pcmd->ClipRect.z - clip_off.x), (LONG)(pcmd->ClipRect.w - clip_off.y)};
                 ctx->RSSetScissorRects(1, &r);
 
                 // Bind texture, Draw
-                ctx->PSSetShaderResources(0, 1, (ID3D10ShaderResourceView**)&pcmd->TextureId);
+                ID3D10ShaderResourceView* texture_srv = (ID3D10ShaderResourceView*)pcmd->TextureId;
+                ctx->PSSetShaderResources(0, 1, &texture_srv);
                 ctx->DrawIndexed(pcmd->ElemCount, idx_offset, vtx_offset);
             }
             idx_offset += pcmd->ElemCount;
@@ -279,7 +285,7 @@ static void ImGui_ImplDX10_CreateFontsTexture()
     }
 
     // Store our identifier
-    io.Fonts->TexID = (void *)g_pFontTextureView;
+    io.Fonts->TexID = (ImTextureID)g_pFontTextureView;
 
     // Create texture sampler
     {
@@ -305,9 +311,9 @@ bool    ImGui_ImplDX10_CreateDeviceObjects()
         ImGui_ImplDX10_InvalidateDeviceObjects();
 
     // By using D3DCompile() from <d3dcompiler.h> / d3dcompiler.lib, we introduce a dependency to a given version of d3dcompiler_XX.dll (see D3DCOMPILER_DLL_A)
-    // If you would like to use this DX10 sample code but remove this dependency you can: 
+    // If you would like to use this DX10 sample code but remove this dependency you can:
     //  1) compile once, save the compiled shader blobs into a file or source code and pass them to CreateVertexShader()/CreatePixelShader() [preferred solution]
-    //  2) use code to detect any version of the DLL and grab a pointer to D3DCompile from the DLL. 
+    //  2) use code to detect any version of the DLL and grab a pointer to D3DCompile from the DLL.
     // See https://github.com/ocornut/imgui/pull/638 for sources and details.
 
     // Create the vertex shader
@@ -347,7 +353,7 @@ bool    ImGui_ImplDX10_CreateDeviceObjects()
             return false;
 
         // Create the input layout
-        D3D10_INPUT_ELEMENT_DESC local_layout[] = 
+        D3D10_INPUT_ELEMENT_DESC local_layout[] =
         {
             { "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT,   0, (size_t)(&((ImDrawVert*)0)->pos), D3D10_INPUT_PER_VERTEX_DATA, 0 },
             { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,   0, (size_t)(&((ImDrawVert*)0)->uv),  D3D10_INPUT_PER_VERTEX_DATA, 0 },
@@ -462,19 +468,23 @@ void    ImGui_ImplDX10_InvalidateDeviceObjects()
 
 bool    ImGui_ImplDX10_Init(ID3D10Device* device)
 {
+    ImGuiIO& io = ImGui::GetIO();
+    io.BackendRendererName = "imgui_impl_dx10";
+
     // Get factory from device
     IDXGIDevice* pDXGIDevice = NULL;
     IDXGIAdapter* pDXGIAdapter = NULL;
     IDXGIFactory* pFactory = NULL;
-    if (device->QueryInterface(IID_PPV_ARGS(&pDXGIDevice)) != S_OK)
-        return false;
-    if (pDXGIDevice->GetParent(IID_PPV_ARGS(&pDXGIAdapter)) != S_OK)
-        return false;
-    if (pDXGIAdapter->GetParent(IID_PPV_ARGS(&pFactory)) != S_OK)
-        return false;
 
-    g_pd3dDevice = device;
-    g_pFactory = pFactory;
+    if (device->QueryInterface(IID_PPV_ARGS(&pDXGIDevice)) == S_OK)
+        if (pDXGIDevice->GetParent(IID_PPV_ARGS(&pDXGIAdapter)) == S_OK)
+            if (pDXGIAdapter->GetParent(IID_PPV_ARGS(&pFactory)) == S_OK)
+            {
+                g_pd3dDevice = device;
+                g_pFactory = pFactory;
+            }
+    if (pDXGIDevice) pDXGIDevice->Release();
+    if (pDXGIAdapter) pDXGIAdapter->Release();
 
     return true;
 }
@@ -482,6 +492,7 @@ bool    ImGui_ImplDX10_Init(ID3D10Device* device)
 void ImGui_ImplDX10_Shutdown()
 {
     ImGui_ImplDX10_InvalidateDeviceObjects();
+    if (g_pFactory) { g_pFactory->Release(); g_pFactory = NULL; }
     g_pd3dDevice = NULL;
 }
 

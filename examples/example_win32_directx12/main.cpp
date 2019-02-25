@@ -1,5 +1,5 @@
-// ImGui - standalone example application for DirectX 12
-// If you are new to ImGui, see examples/README.txt and documentation at the top of imgui.cpp.
+// dear imgui: standalone example application for DirectX 12
+// If you are new to dear imgui, see examples/README.txt and documentation at the top of imgui.cpp.
 // FIXME: 64-bit only for now! (Because sizeof(ImTextureId) == sizeof(void*))
 
 #include "imgui.h"
@@ -164,7 +164,7 @@ HRESULT CreateDeviceD3D(HWND hWnd)
 
         SIZE_T rtvDescriptorSize = g_pd3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
         D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = g_pd3dRtvDescHeap->GetCPUDescriptorHandleForHeapStart();
-        for (UINT i = 0; i < NUM_BACK_BUFFERS; i++) 
+        for (UINT i = 0; i < NUM_BACK_BUFFERS; i++)
         {
             g_mainRenderTargetDescriptor[i] = rtvHandle;
             rtvHandle.ptr += rtvDescriptorSize;
@@ -272,13 +272,13 @@ int main(int, char**)
     // Create application window
     WNDCLASSEX wc = { sizeof(WNDCLASSEX), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle(NULL), NULL, NULL, NULL, NULL, _T("ImGui Example"), NULL };
     RegisterClassEx(&wc);
-    HWND hwnd = CreateWindow(_T("ImGui Example"), _T("ImGui DirectX12 Example"), WS_OVERLAPPEDWINDOW, 100, 100, 1280, 800, NULL, NULL, wc.hInstance, NULL);
+    HWND hwnd = CreateWindow(wc.lpszClassName, _T("Dear ImGui DirectX12 Example"), WS_OVERLAPPEDWINDOW, 100, 100, 1280, 800, NULL, NULL, wc.hInstance, NULL);
 
     // Initialize Direct3D
     if (CreateDeviceD3D(hwnd) < 0)
     {
         CleanupDeviceD3D();
-        UnregisterClass(_T("ImGui Example"), wc.hInstance);
+        UnregisterClass(wc.lpszClassName, wc.hInstance);
         return 1;
     }
 
@@ -286,25 +286,26 @@ int main(int, char**)
     ShowWindow(hwnd, SW_SHOWDEFAULT);
     UpdateWindow(hwnd);
 
-    // Setup Dear ImGui binding
+    // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
 
-    ImGui_ImplWin32_Init(hwnd);
-    ImGui_ImplDX12_Init(g_pd3dDevice, NUM_FRAMES_IN_FLIGHT, 
-        DXGI_FORMAT_R8G8B8A8_UNORM,
-        g_pd3dSrvDescHeap->GetCPUDescriptorHandleForHeapStart(), 
-        g_pd3dSrvDescHeap->GetGPUDescriptorHandleForHeapStart());
-
-    // Setup style
+    // Setup Dear ImGui style
     ImGui::StyleColorsDark();
     //ImGui::StyleColorsClassic();
 
+    // Setup Platform/Renderer bindings
+    ImGui_ImplWin32_Init(hwnd);
+    ImGui_ImplDX12_Init(g_pd3dDevice, NUM_FRAMES_IN_FLIGHT,
+        DXGI_FORMAT_R8G8B8A8_UNORM,
+        g_pd3dSrvDescHeap->GetCPUDescriptorHandleForHeapStart(),
+        g_pd3dSrvDescHeap->GetGPUDescriptorHandleForHeapStart());
+
     // Load Fonts
-    // - If no fonts are loaded, dear imgui will use the default font. You can also load multiple fonts and use ImGui::PushFont()/PopFont() to select them. 
-    // - AddFontFromFileTTF() will return the ImFont* so you can store it if you need to select the font among multiple. 
+    // - If no fonts are loaded, dear imgui will use the default font. You can also load multiple fonts and use ImGui::PushFont()/PopFont() to select them.
+    // - AddFontFromFileTTF() will return the ImFont* so you can store it if you need to select the font among multiple.
     // - If the file cannot be loaded, the function will return NULL. Please handle those errors in your application (e.g. use an assertion, or display an error and quit).
     // - The fonts will be rasterized at a given size (w/ oversampling) and stored into a texture when calling ImFontAtlas::Build()/GetTexDataAsXXXX(), which ImGui_ImplXXXX_NewFrame below will call.
     // - Read 'misc/fonts/README.txt' for more instructions and details.
@@ -338,46 +339,46 @@ int main(int, char**)
             continue;
         }
 
-        // Start the ImGui frame
+        // Start the Dear ImGui frame
         ImGui_ImplDX12_NewFrame();
         ImGui_ImplWin32_NewFrame();
         ImGui::NewFrame();
 
-        // 1. Show a simple window.
-        // Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets automatically appears in a window called "Debug".
+        // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
+        if (show_demo_window)
+            ImGui::ShowDemoWindow(&show_demo_window);
+
+        // 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
         {
             static float f = 0.0f;
             static int counter = 0;
-            ImGui::Text("Hello, world!");                           // Display some text (you can use a format string too)
-            ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f    
-            ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
 
-            ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our windows open/close state
+            ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+
+            ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
+            ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
             ImGui::Checkbox("Another Window", &show_another_window);
 
-            if (ImGui::Button("Button"))                            // Buttons return true when clicked (NB: most widgets return true when edited/activated)
+            ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
+            ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
+
+            if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
                 counter++;
             ImGui::SameLine();
             ImGui::Text("counter = %d", counter);
 
             ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+            ImGui::End();
         }
 
-        // 2. Show another simple window. In most cases you will use an explicit Begin/End pair to name your windows.
+        // 3. Show another simple window.
         if (show_another_window)
         {
-            ImGui::Begin("Another Window", &show_another_window);
+            ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
             ImGui::Text("Hello from another window!");
             if (ImGui::Button("Close Me"))
                 show_another_window = false;
             ImGui::End();
-        }
-
-        // 3. Show the ImGui demo window. Most of the sample code is in ImGui::ShowDemoWindow(). Read its code to learn more about Dear ImGui!
-        if (show_demo_window)
-        {
-            ImGui::SetNextWindowPos(ImVec2(650, 20), ImGuiCond_FirstUseEver); // Normally user code doesn't need/want to call this because positions are saved in .ini file anyway. Here we just want to make the demo initial state a bit more friendly!
-            ImGui::ShowDemoWindow(&show_demo_window);
         }
 
         // Rendering
@@ -423,7 +424,7 @@ int main(int, char**)
 
     CleanupDeviceD3D();
     DestroyWindow(hwnd);
-    UnregisterClass(_T("ImGui Example"), wc.hInstance);
+    UnregisterClass(wc.lpszClassName, wc.hInstance);
 
     return 0;
 }

@@ -145,7 +145,8 @@ Frameworks:
 - Ogre: [ogreimgui](https://bitbucket.org/LMCrashy/ogreimgui/src)
 - OpenFrameworks: [ofxImGui](https://github.com/jvcleave/ofxImGui)
 - OpenSceneGraph/OSG: [gist](https://gist.github.com/fulezi/d2442ca7626bf270226014501357042c)
-- ORX: [#1843](https://github.com/ocornut/imgui/pull/1843)
+- ORX: [ImGuiOrx](https://github.com/thegwydd/ImGuiOrx), [#1843](https://github.com/ocornut/imgui/pull/1843)
+- px_render: [px_render_imgui.h](https://github.com/pplux/px/blob/master/px_render_imgui.h), [#1935](https://github.com/ocornut/imgui/pull/1935)
 - LÖVE+Lua: [love-imgui](https://github.com/slages/love-imgui)
 - Magnum: [ImGuiIntegration](https://doc.magnum.graphics/magnum/namespaceMagnum_1_1ImGuiIntegration.html) ([example](https://doc.magnum.graphics/magnum/examples-imgui.html))
 - NanoRT: [syoyo/imgui](https://github.com/syoyo/imgui/tree/nanort)
@@ -304,10 +305,10 @@ Ongoing dear imgui development is financially supported by users and private spo
 - Media Molecule, Mobigame, Aras Pranckevičius, Greggman, DotEmu, Nadeo, Supercell, Runner, Aiden Koss, Kylotonn.
 
 **Salty caramel supporters**
-- Recognition Robotics, ikrima, Geoffrey Evans, Mercury Labs, Singularity Demo Group, Lionel Landwerlin, Ron Gilbert, Brandon Townsend, Nikhil Deshpande, Cort Stratton, drudru, Harfang 3D, Jeff Roberts, Rainway inc, Ondra Voves, Mesh Consultants.
+- Recognition Robotics, ikrima, Geoffrey Evans, Mercury Labs, Singularity Demo Group, Lionel Landwerlin, Ron Gilbert, Brandon Townsend, Nikhil Deshpande, Cort Stratton, drudru, Harfang 3D, Jeff Roberts, Rainway inc, Ondra Voves, Mesh Consultants, Unit 2 Games.
 
 **Caramel supporters**
-- Jerome Lanquetot, Daniel Collin, Ctrl Alt Ninja, Neil Henning, Neil Blakey-Milner, Aleksei, NeiloGD, Eric, Game Atelier, Vincent Hamm, Colin Riley, Sergio Gonzales, Andrew Berridge, Roy Eltham, Game Preservation Society, Josh Faust, Martin Donlon, Codecat, Doug McNabb, Emmanuel Julien, Guillaume Chereau, Jeffrey Slutter, Jeremiah Deckard, r-lyeh, Nekith, Joshua Fisher, Malte Hoffmann, Mustafa Karaalioglu, Merlyn Morgan-Graham, Per Vognsen, Fabian Giesen, Jan Staubach, Matt Hargett, John Shearer, Jesse Chounard, kingcoopa, Jonas Bernemann, Johan Andersson, Michael Labbe, Tomasz Golebiowski, Louis Schnellbach, Jimmy Andrews, Bojan Endrovski, Robin Berg Pettersen, Rachel Crawford, Andrew Johnson, Sean Hunter, Jordan Mellow, Nefarius Software Solutions, Laura Wieme, Robert Nix, Mick Honey, Steven Kah Hien Wong, Bartosz Bielecki, Oscar Penas, A M, Liam Moynihan, Artometa, Mark Lee, Dimitri Diakopoulos, Pete Goodwin.
+- Jerome Lanquetot, Daniel Collin, Ctrl Alt Ninja, Neil Henning, Neil Blakey-Milner, Aleksei, NeiloGD, Eric, Game Atelier, Vincent Hamm, Colin Riley, Sergio Gonzales, Andrew Berridge, Roy Eltham, Game Preservation Society, Josh Faust, Martin Donlon, Codecat, Doug McNabb, Emmanuel Julien, Guillaume Chereau, Jeffrey Slutter, Jeremiah Deckard, r-lyeh, Nekith, Joshua Fisher, Malte Hoffmann, Mustafa Karaalioglu, Merlyn Morgan-Graham, Per Vognsen, Fabian Giesen, Jan Staubach, Matt Hargett, John Shearer, Jesse Chounard, kingcoopa, Jonas Bernemann, Johan Andersson, Michael Labbe, Tomasz Golebiowski, Louis Schnellbach, Jimmy Andrews, Bojan Endrovski, Robin Berg Pettersen, Rachel Crawford, Andrew Johnson, Sean Hunter, Jordan Mellow, Nefarius Software Solutions, Laura Wieme, Robert Nix, Mick Honey, Steven Kah Hien Wong, Bartosz Bielecki, Oscar Penas, A M, Liam Moynihan, Artometa, Mark Lee, Dimitri Diakopoulos, Pete Goodwin, Johnathan Roatch, nyu lea, Oswald Hurlem.
 
 And all other past and present supporters; THANK YOU!
 (Please contact me if you would like to be added or removed from this list)
